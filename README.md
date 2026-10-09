@@ -25,7 +25,7 @@ Transactions and the monthly budget are saved in this browser's local storage. T
 
 Run npm install to install dependencies, npm run dev to start the local server, npm run lint and npm run build to check the project, and npm run deploy to publish it to GitHub Pages.
 
-Planned URL after deployment: https://a2rp.github.io/expense-tracker/
+Deployed site: https://a2rp.github.io/expense-tracker/
 
 ## Future improvements
 
