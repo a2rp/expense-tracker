@@ -16,11 +16,27 @@ const starters = [
     { id: 4, name: "Metro pass", category: "Travel", amount: 1800, type: "expense", date: today(-2), note: "" },
     { id: 5, name: "Design project", category: "Income", amount: 12000, type: "income", date: today(-3), note: "Freelance" },
 ];
-const monthKey = today().slice(0, 7);
 const categories = ["Home", "Food", "Travel", "Bills", "Health", "Shopping", "Fun", "Income", "Other"];
 const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 const readTransactions = () => {
-    try { const saved = localStorage.getItem(storageKey); return saved ? JSON.parse(saved) : starters; } catch { return starters; }
+    try {
+        const saved = localStorage.getItem(storageKey);
+        if (!saved) return starters;
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : starters;
+    } catch {
+        return starters;
+    }
+};
+const readBudget = () => {
+    try {
+        const saved = localStorage.getItem("ledgerly-budget");
+        if (saved === null) return 45000;
+        const amount = Number(saved);
+        return Number.isFinite(amount) && amount >= 0 ? amount : 45000;
+    } catch {
+        return 45000;
+    }
 };
 
 const ExpenseTracker = () => {
@@ -28,12 +44,17 @@ const ExpenseTracker = () => {
     const [type, setType] = useState("expense");
     const [filter, setFilter] = useState("All");
     const [query, setQuery] = useState("");
-    const [budget, setBudget] = useState(() => Number(localStorage.getItem("ledgerly-budget")) || 45000);
+    const [budget, setBudget] = useState(readBudget);
     const [draft, setDraft] = useState({ name: "", category: "Food", amount: "", date: today(0), note: "" });
     const [pendingDelete, setPendingDelete] = useState(null);
-    useEffect(() => localStorage.setItem(storageKey, JSON.stringify(transactions)), [transactions]);
-    useEffect(() => localStorage.setItem("ledgerly-budget", String(budget)), [budget]);
+    useEffect(() => {
+        try { localStorage.setItem(storageKey, JSON.stringify(transactions)); } catch { /* Keep this session usable when storage is unavailable. */ }
+    }, [transactions]);
+    useEffect(() => {
+        try { localStorage.setItem("ledgerly-budget", String(budget)); } catch { /* Keep this session usable when storage is unavailable. */ }
+    }, [budget]);
 
+    const monthKey = today().slice(0, 7);
     const monthTransactions = transactions.filter((item) => item.date.slice(0, 7) === monthKey);
     const income = monthTransactions.filter((item) => item.type === "income").reduce((sum, item) => sum + item.amount, 0);
     const expenses = monthTransactions.filter((item) => item.type === "expense").reduce((sum, item) => sum + item.amount, 0);
