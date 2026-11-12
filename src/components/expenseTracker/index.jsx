@@ -47,6 +47,7 @@ const ExpenseTracker = () => {
     const [budget, setBudget] = useState(readBudget);
     const [draft, setDraft] = useState({ name: "", category: "Food", amount: "", date: today(0), note: "" });
     const [pendingDelete, setPendingDelete] = useState(null);
+    const [formError, setFormError] = useState("");
     useEffect(() => {
         try { localStorage.setItem(storageKey, JSON.stringify(transactions)); } catch { /* Keep this session usable when storage is unavailable. */ }
     }, [transactions]);
@@ -63,7 +64,16 @@ const ExpenseTracker = () => {
     const addTransaction = (event) => {
         event.preventDefault();
         const amount = Number(draft.amount);
-        if (!draft.name.trim() || amount <= 0) return;
+        if (!draft.name.trim()) {
+            setFormError("Enter a description for this transaction.");
+            return;
+        }
+        if (!draft.date) {
+            setFormError("Choose a date for this transaction.");
+            return;
+        }
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        setFormError("");
         setTransactions((current) => [{ ...draft, id: Date.now(), name: draft.name.trim(), amount, type, category: type === "income" ? "Income" : draft.category }, ...current]);
         setDraft({ name: "", category: "Food", amount: "", date: today(0), note: "" });
     };
@@ -96,10 +106,11 @@ const ExpenseTracker = () => {
                 <form className={styles.addPanel} id="add" onSubmit={addTransaction}>
                     <div className={styles.sectionHeading}><div><h2>New entry</h2><p>Record money in or out.</p></div><span className={styles.plusMark}><FiPlus aria-hidden="true" /></span></div>
                     <div className={styles.typeSwitch} role="group" aria-label="Entry type"><button type="button" className={type === "expense" ? styles.selectedExpense : ""} aria-pressed={type === "expense"} onClick={() => setType("expense")}><FiArrowUpRight aria-hidden="true" /> Expense</button><button type="button" className={type === "income" ? styles.selectedIncome : ""} aria-pressed={type === "income"} onClick={() => setType("income")}><FiArrowDownLeft aria-hidden="true" /> Income</button></div>
-                    <label>Description<input required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="What was it for?" /></label>
+                    <label>Description<input required value={draft.name} onChange={(event) => { setDraft({ ...draft, name: event.target.value }); if (formError) setFormError(""); }} placeholder="What was it for?" /></label>
                     <label>Amount<div className={styles.amountInput}><span>₹</span><input required min="1" type="number" value={draft.amount} onChange={(event) => setDraft({ ...draft, amount: event.target.value })} placeholder="0" /></div></label>
-                    <div className={styles.formRow}><label>Category<select value={type === "income" ? "Income" : draft.category} disabled={type === "income"} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>{categories.filter((item) => type === "income" ? item === "Income" : item !== "Income").map((item) => <option key={item}>{item}</option>)}</select></label><label>Date<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
+                    <div className={styles.formRow}><label>Category<select value={type === "income" ? "Income" : draft.category} disabled={type === "income"} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>{categories.filter((item) => type === "income" ? item === "Income" : item !== "Income").map((item) => <option key={item}>{item}</option>)}</select></label><label>Date<input type="date" required value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
                     <label>Note <span className={styles.optional}>(optional)</span><input value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="Add a detail" /></label>
+                    {formError && <p className={styles.formError} role="alert">{formError}</p>}
                     <button type="submit" className={styles.submitButton}>Add {type}<FiPlus aria-hidden="true" /></button>
                 </form>
                 <section className={styles.spendingPanel}><div className={styles.sectionHeading}><div><h2>Spending by category</h2><p>Where this month's expenses landed.</p></div></div>{categoryTotals.length ? categoryTotals.map((item) => <div className={styles.categoryRow} key={item.category}><div><span>{item.category}</span><strong>{money(item.amount)}</strong></div><div className={styles.bar}><span style={{ width: Math.max(5, item.amount / Math.max(...categoryTotals.map((category) => category.amount)) * 100) + "%" }} /></div></div>) : <p className={styles.empty}>Add an expense to see your category mix.</p>}<p className={styles.localNote}>Your entries are saved in this browser.</p></section>

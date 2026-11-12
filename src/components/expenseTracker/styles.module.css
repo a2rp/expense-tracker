@@ -48,6 +48,7 @@
     .addPanel input:focus, .addPanel select:focus { border-color: var(--accent); }.addPanel select:disabled { opacity: .65; }
     .amountInput { display: flex; height: 35px; align-items: center; padding-left: 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff; }.amountInput input { border: 0; }
     .formRow { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }.optional { font-weight: 400; }
+    .formError { margin-top: 10px; color: var(--red); font-size: 10px; }
     .submitButton { width: 100%; min-height: 37px; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 0 12px; border: 0; border-radius: 7px; color: #fff; background: var(--accent); font-size: 10px; font-weight: 700; }
     .submitButton:hover { box-shadow: 0 3px 10px #6652aa30; }.submitButton svg { width: 14px; }
     .categoryRow { margin-top: 15px; }.categoryRow > div:first-child { display: flex; justify-content: space-between; font-size: 10px; }.categoryRow strong { font-size: 10px; }
